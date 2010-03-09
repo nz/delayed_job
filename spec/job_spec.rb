@@ -341,5 +341,11 @@ describe Delayed::Job do
     end
 
   end
+
+  it "should make the job accessible from within perform when running invoke_job" do
+    job = Delayed::Job.create(:payload_object => SimpleJob.new)
+    Delayed::Job.should_receive(:current=).with(job)
+    job.invoke_job
+  end
   
 end

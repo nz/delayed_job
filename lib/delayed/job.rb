@@ -22,6 +22,10 @@ module Delayed
     cattr_accessor :worker_name
     self.worker_name = "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
 
+    # Record the current worker in a class variable to allow communication
+    # (such as progress updates) with the application.
+    cattr_accessor :current
+
     NextTaskSQL         = '(run_at <= ? AND (locked_at IS NULL OR locked_at < ?) OR (locked_by = ?)) AND failed_at IS NULL'
     NextTaskOrder       = 'priority DESC, run_at ASC'
 
@@ -214,6 +218,7 @@ module Delayed
 
     # Moved into its own method so that new_relic can trace it.
     def invoke_job
+      Job.current = self
       payload_object.perform
     end
 
